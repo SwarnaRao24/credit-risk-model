@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+.idea/
+
+# Local MLflow databases and runs
+mlruns/
+mlflow.db
+
+# Heavy Model binaries
+*.joblib
+*.pkl
+*.pkl.z
+
+# Large Local Datasets
+data/
+*.csv
