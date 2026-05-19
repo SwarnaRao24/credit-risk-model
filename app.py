@@ -50,19 +50,20 @@ except Exception as e:
     print("Backup model loaded successfully.")
 
 # 3. Your 12 notebook features
+# Temporary alignment list to match your logged MLflow run schema
 FEATURE_NAMES = [
-    "RevolvingUtilizationOfUnsecuredLines",
-    "age",
-    "NumberOfTime30-59DaysPastDueNotWorse",
-    "DebtRatio",
-    "MonthlyIncome",
-    "NumberOfOpenCreditLinesAndLoans",
-    "NumberOfTimes90DaysLate",
-    "NumberRealEstateLoansOrLines",
-    "NumberOfTime60-89DaysPastDueNotWorse",
-    "NumberOfDependents",
-    "TotalTimesLate",
-    "IncomePerPerson",
+    'RevolvingUtilizationOfUnsecuredLines',
+    'age',
+    'NumberOfTime30-59DaysPastDueNotWorse',
+    'DebtRatio',
+    'MonthlyIncome',
+    'NumberOfOpenCreditLinesAndLoans',
+    'NumberOfTimes90DaysLate',
+    'NumberRealEstateLoansOrLines',
+    'NumberOfTime60-89DaysPastDueNotWorse',
+    'NumberOfDependents',
+    'TotalTimesLate',
+    'IncomePerPerson'
 ]
 
 
@@ -74,6 +75,20 @@ def home():
 @app.post("/predict")
 def predict_credit_risk(applicant_data: dict):
     try:
+        # 2. DYNAMICALLY ENGINEER THE FEATURES ON THE FLY FOR INCOMING DATA
+        # Calculate TotalTimesLate
+        applicant_data["TotalTimesLate"] = (
+            int(applicant_data.get("NumberOfTime30-59DaysPastDueNotWorse", 0))
+            + int(applicant_data.get("NumberOfTimes90DaysLate", 0))
+            + int(applicant_data.get("NumberOfTime60-89DaysPastDueNotWorse", 0))
+        )
+
+        # Calculate IncomePerPerson safely to avoid division by zero
+        monthly_income = float(applicant_data.get("MonthlyIncome", 0))
+        dependents = int(applicant_data.get("NumberOfDependents", 0))
+        applicant_data["IncomePerPerson"] = monthly_income / (dependents + 1)
+
+        # Convert to DataFrame and sort columns to match model blueprint
         df = pd.DataFrame([applicant_data])
         df = df[FEATURE_NAMES]
 
@@ -81,7 +96,6 @@ def predict_credit_risk(applicant_data: dict):
         for col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        # Run predictions using the mlflow pyfunc layer
         prediction_raw = model.predict(df)[0]
         prediction = int(prediction_raw)
 
@@ -91,10 +105,5 @@ def predict_credit_risk(applicant_data: dict):
             if prediction == 1
             else "Approved / Low Risk",
         }
-
-    except KeyError as e:
-        raise HTTPException(
-            status_code=400, detail=f"Missing required financial feature: {str(e)}"
-        )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
