@@ -20,6 +20,6 @@ The model achieved an **AUC-ROC of 0.8692**, demonstrating high accuracy in dist
 ---
 **Developer:** Swarna Rao  
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/swarnamukhi-chintalapudi)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/swarnamukhirchintalapudi)
 
 **Focus:** Data Science | AI Strategy | Finance
