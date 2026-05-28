@@ -1,21 +1,71 @@
-# Credit Risk Prediction Model
-**Final AUC-ROC Score: 0.8692**
+# Real-Time Credit Risk Inference Engine & MLOps Pipeline
 
-## Project Overview
-This project is a machine learning system designed to predict the probability of a borrower experiencing financial distress within the next two years. It was built as an end-to-end pipeline.
+An enterprise-grade, production-ready machine learning pipeline that trains an XGBoost classifier to assess credit default risk and serves predictions via a high-performance FastAPI backend. The architecture shifts away from traditional static file dependencies by dynamically querying an MLflow tracking database to serve the latest model version at runtime.
 
-## Technical Stack
-- **Language:** Python
-- **Libraries:** Pandas, NumPy, Scikit-Learn (Random Forest), XGBoost
-- **Tools:** Jupyter Notebook, VS Code, Git
+## 🛠️ Tech Stack & Trending Tools Used
+* **Backend Framework:** FastAPI (Asynchronous Python Web Framework)
+* **Machine Learning Framework:** XGBoost (Extreme Gradient Boosting)
+* **MLOps & Experiment Tracking:** MLflow (Tracking Server with SQLite storage backend)
+* **Data Engineering & Analysis:** Pandas, Jupyter Notebooks
+* **Server Gateway:** Uvicorn (ASGI Server implementation)
+* **Version Control:** Git & GitHub (Optimized for clean artifact management)
 
-## Key Engineering Steps
-- **Data Preprocessing:** Handled missing values for 150,000 rows using median imputation.
-- **Outlier Management:** Capped extreme credit utilization ratios and corrected invalid age data.
-- **Feature Engineering:** Created the 'TotalTimesLate' feature by aggregating 30, 60, and 90-day delinquency counts to better capture historical behavior.
+---
 
-## Results
-The model achieved an **AUC-ROC of 0.8692**, demonstrating high accuracy in distinguishing between high-risk and low-risk candidates. This project showcases the application of ensemble learning in a financial risk context.
+## 🏗️ System Architecture
+
+[ Client Web Request ] 
+          │ (Sends raw, un-engineered customer telemetry via JSON)
+          ▼
+   ┌──────────────┐
+   │ FastAPI Server│ ──► Dynamically engineers features ('TotalTimesLate', 'IncomePerPerson')
+   └──────────────┘
+          │
+          ▼
+   ┌──────────────────────┐
+   │ SQLite /mlflow.db    │ ──► Queries MLflow tracking tables for the latest 
+   └──────────────────────┘     successful training run artifact pointer
+          │
+          ▼
+[ XGBoost Risk Engine  ] ──► Evaluates schema-aligned matrix & returns real-time risk assessment
+
+---
+
+## 🚀 Local Deployment Guide
+
+### 1. Environment Setup
+Clone the repository and install the production dependencies:
+```bash
+pip install -r requirements.txt #Install Dependencies
+
+mlflow ui --backend-store-uri sqlite:///mlflow.db  #To launch MLFlow experiments UI
+
+uvicorn app:app --reload   #Run server
+
+#To send a mock credit application payload
+curl -X POST "[http://127.0.0.1:8000/predict](http://127.0.0.1:8000/predict)" \
+-H "Content-Type: application/json" \
+-d '{
+  "RevolvingUtilizationOfUnsecuredLines": 0.85,
+  "age": 42,
+  "NumberOfTime30-59DaysPastDueNotWorse": 2,
+  "DebtRatio": 0.55,
+  "MonthlyIncome": 4500,
+  "NumberOfOpenCreditLinesAndLoans": 6,
+  "NumberOfTimes90DaysLate": 1,
+  "NumberRealEstateLoansOrLines": 1,
+  "NumberOfTime60-89DaysPastDueNotWorse": 0,
+  "NumberOfDependents": 2
+}'
+```
+### 2.API Expected Output
+```bash
+#JSON
+{
+  "default_prediction": 1,
+  "status": "High Risk of Default"
+}
+```
 
 ---
 **Developer:** Swarna Rao  
