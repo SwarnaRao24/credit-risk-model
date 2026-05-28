@@ -2,7 +2,7 @@
 
 An enterprise-grade, production-ready machine learning pipeline that trains an XGBoost classifier to assess credit default risk and serves predictions via a high-performance FastAPI backend. The architecture shifts away from traditional static file dependencies by dynamically querying an MLflow tracking database to serve the latest model version at runtime.
 
-## 🛠️ Tech Stack & Trending Tools Used
+##️ Tech Stack & Trending Tools Used
 * **Backend Framework:** FastAPI (Asynchronous Python Web Framework)
 * **Machine Learning Framework:** XGBoost (Extreme Gradient Boosting)
 * **MLOps & Experiment Tracking:** MLflow (Tracking Server with SQLite storage backend)
@@ -12,26 +12,34 @@ An enterprise-grade, production-ready machine learning pipeline that trains an X
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
-[ Client Web Request ] 
-          │ (Sends raw, un-engineered customer telemetry via JSON)
-          ▼
-   ┌──────────────┐
-   │ FastAPI Server│ ──► Dynamically engineers features ('TotalTimesLate', 'IncomePerPerson')
-   └──────────────┘
-          │
-          ▼
-   ┌──────────────────────┐
-   │ SQLite /mlflow.db    │ ──► Queries MLflow tracking tables for the latest 
-   └──────────────────────┘     successful training run artifact pointer
-          │
-          ▼
-[ XGBoost Risk Engine  ] ──► Evaluates schema-aligned matrix & returns real-time risk assessment
+
+```mermaid
+graph TD
+    classDef client fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#000;
+    classDef server fill:#fff9c4,stroke:#fbc02d,stroke-width:2px,color:#000;
+    classDef database fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#000;
+    classDef model fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#000;
+
+    A[Client Web Request<br><i>Raw JSON Payload</i>]:::client -->|HTTP POST /predict| B(FastAPI Server Framework):::server
+    
+    subgraph Data Pipeline Engine
+        B --> C{Feature Engineering<br>Layer}:::server
+        C -->|Compute| D[TotalTimesLate]:::server
+        C -->|Compute| E[IncomePerPerson]:::server
+    end
+
+    B -->|Query Active Run Hash| F[(SQLite MLflow Registry<br><i>mlflow.db</i>)]:::database
+    F -->|Return Model Artifact Blueprint| B
+
+    D & E & B -->|Pass Schema-Aligned Matrix| G[XGBoost Inference Engine]:::model
+    G -->|Return Real-Time Assessment| H[JSON Response<br><i>High/Low Default Risk</i>]:::client
+```
 
 ---
 
-## 🚀 Local Deployment Guide
+## Local Deployment Guide
 
 ### 1. Environment Setup
 Clone the repository and install the production dependencies:
