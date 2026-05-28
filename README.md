@@ -70,6 +70,6 @@ curl -X POST "[http://127.0.0.1:8000/predict](http://127.0.0.1:8000/predict)" \
 ---
 **Developer:** Swarna Rao  
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/swarnamukhi-chintalapudi)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/swarnamukhirchintalapudi)
 
 **Focus:** Data Science | AI Strategy | Finance
