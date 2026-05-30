@@ -1,0 +1,72 @@
+name: CI/CD — Test, Build & Deploy to Hugging Face Spaces
+ 
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+ 
+jobs:
+  # ─────────────────────────────────────────────
+  # JOB 1: Lint & Test
+  # ─────────────────────────────────────────────
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+ 
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+ 
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+ 
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+ 
+      - name: Smoke-test the API starts correctly
+        run: |
+          uvicorn app:app --host 0.0.0.0 --port 8000 &
+          sleep 5
+          curl --fail http://localhost:8000/ || exit 1
+          kill %1
+ 
+  # ─────────────────────────────────────────────
+  # JOB 2: Deploy to Hugging Face Spaces
+  # Only runs on pushes to main (not PRs)
+  # ─────────────────────────────────────────────
+  deploy:
+    name: Deploy to Hugging Face Spaces
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+ 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for git push
+ 
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # Configure git
+          git config user.email "ci@github-actions"
+          git config user.name "GitHub Actions"
+ 
+          # Add the Hugging Face Space as a remote
+          # IMPORTANT: Replace YOUR_HF_USERNAME and YOUR_SPACE_NAME below
+          git remote add huggingface https://SwarnaRao24:${HF_TOKEN}@huggingface.co/spaces/SwarnaRao24/Credit_Risk_Model
+ 
+          # Force-push main branch to HF Spaces (it auto-rebuilds on push)
+          git push huggingface main --force
+ 
