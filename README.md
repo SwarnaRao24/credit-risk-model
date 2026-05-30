@@ -1,13 +1,3 @@
----
-title: Credit Risk Inference API
-emoji: 💳
-colorFrom: indigo
-colorTo: red
-sdk: docker
-pinned: false
----
- 
-
 # 💳 Credit Risk Inference Engine
  
 ### Production MLOps pipeline — from raw applicant data to a live REST decision in milliseconds
