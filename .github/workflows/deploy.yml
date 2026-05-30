@@ -68,6 +68,7 @@ jobs:
           git init
           git config user.email "ci@github-actions"
           git config user.name "GitHub Actions"
+          git branch -M main
           git add .
           git commit -m "Deploy credit risk model"
 
