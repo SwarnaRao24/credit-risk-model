@@ -7,7 +7,7 @@ sdk: docker
 pinned: false
 ---
  
-<div align="center">
+
 # 💳 Credit Risk Inference Engine
  
 ### Production MLOps pipeline — from raw applicant data to a live REST decision in milliseconds
@@ -15,7 +15,7 @@ pinned: false
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.1-FF6600?style=flat-square&logo=xgboost&logoColor=white)](https://xgboost.ai)
 [![MLflow](https://img.shields.io/badge/MLflow-2.15-0194E2?style=flat-square&logo=mlflow&logoColor=white)](https://mlflow.org)
-[![Docker](https://img.shields.io/badge/Docker-containerised-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
+[![Docker](https://img.shields.io/badge/Docker-containerized-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)](https://github.com/features/actions)
 [![HF Spaces](https://img.shields.io/badge/Deploy-HF_Spaces-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://huggingface.co/spaces)
  
