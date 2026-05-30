@@ -8,8 +8,7 @@
 [![Docker](https://img.shields.io/badge/Docker-containerized-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=flat-square&logo=github-actions&logoColor=white)](https://github.com/features/actions)
 [![HF Spaces](https://img.shields.io/badge/Deploy-HF_Spaces-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://huggingface.co/spaces)
- 
-</div>
+
 ---
  
 ## What this does
@@ -244,8 +243,6 @@ flowchart LR
     PUSH --> GA
     D2 --> HF --> LIVE
 ```
- 
----
 
 ---
 **Developer:** Swarna Rao  
