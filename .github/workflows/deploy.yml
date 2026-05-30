@@ -1,68 +1,21 @@
-name: CI/CD — Test, Build & Deploy to Hugging Face Spaces
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Pull Git LFS files
-        run: git lfs pull
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Smoke-test the API starts correctly
-        run: |
-          uvicorn app:app --host 0.0.0.0 --port 8000 &
-          sleep 5
-          curl --fail http://localhost:8000/ || exit 1
-          kill %1
-
-  deploy:
-    name: Deploy to Hugging Face Spaces
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Pull Git LFS files
-        run: git lfs pull
-
-      - name: Push to Hugging Face Space
+- name: Push to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
+          # Create a fresh repo with only current files — no binary history
+          mkdir hf_deploy
+          cp app.py hf_deploy/
+          cp requirements.txt hf_deploy/
+          cp Dockerfile hf_deploy/
+          cp README.md hf_deploy/
+          # Don't copy the joblib — Dockerfile downloads it from GitHub at build time
+
+          cd hf_deploy
+          git init
           git config user.email "ci@github-actions"
           git config user.name "GitHub Actions"
+          git add .
+          git commit -m "Deploy credit risk model"
 
           git remote add huggingface https://SwarnaRao24:${HF_TOKEN}@huggingface.co/spaces/SwarnaRao24/Credit_Risk_Model
-
-          git lfs track "*.joblib"
-          git add .gitattributes
-          git commit -m "Track joblib with Git LFS" || echo "Nothing to commit"
-
           git push huggingface main --force
