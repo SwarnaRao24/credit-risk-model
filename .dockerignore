@@ -1,0 +1,11 @@
+mlflow.db
+mlruns/
+data/
+*.csv
+__pycache__/
+*.pyc
+.git/
+.github/
+tests/
+*.ipynb
+.env

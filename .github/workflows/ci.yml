@@ -35,6 +35,6 @@ jobs:
       - name: Smoke test container
         run: |
           docker run -d -p 8000:8000 --name api credit-risk-api:latest
-          sleep 5
+          sleep 20
           curl -f http://localhost:8000/health
           docker stop api
