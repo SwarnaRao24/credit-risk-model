@@ -35,6 +35,10 @@ jobs:
       - name: Smoke test container
         run: |
           docker run -d -p 8000:8000 --name api credit-risk-api:latest
+          echo "Waiting 20s for startup..."
           sleep 20
+          echo "=== CONTAINER LOGS ==="
+          docker logs api
+          echo "=== END LOGS ==="
           curl -f http://localhost:8000/health
           docker stop api
