@@ -59,10 +59,11 @@ try:
     logger.info("XGBClassifier loaded from MLflow.")
 
 except Exception as e:
-    logger.warning(f"MLflow route failed: {e}. Falling back to joblib...")
+    logger.warning(f"MLflow route failed: {e}")
+    logger.info("No mlflow.db found in container — loading from joblib fallback.")
     import joblib
     xgb_model = joblib.load("credit_risk_model.joblib")
-    logger.info("Fallback model loaded from joblib.")
+    logger.info("Fallback model loaded successfully from credit_risk_model.joblib.")
 
 # ── SHAP explainer (runs once at startup) ─────────────────
 try:

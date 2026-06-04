@@ -6,10 +6,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy application code and model artifact
 COPY app.py .
 COPY credit_risk_model.joblib .
-COPY mlflow.db .
+
+# mlflow.db is NOT copied — it gets created at runtime
+# or mounted via docker-compose volume
 
 EXPOSE 8000
 
