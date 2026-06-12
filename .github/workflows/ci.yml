@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt pytest httpx2
+        run: pip install -r requirements.txt pytest
 
       - name: Run tests
         run: pytest tests/ -v --rootdir=.   # ← tells pytest root is project root
@@ -28,6 +28,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Verify model is real (not an LFS pointer)
+        run: |
+          ls -la credit_risk_model.joblib
+          if head -c 7 credit_risk_model.joblib | grep -q "version"; then
+            echo "ERROR: joblib is still an LFS pointer file"; exit 1
+          fi
 
       - name: Build Docker image
         run: docker build -t credit-risk-api:latest .
