@@ -15,6 +15,10 @@ mlflow.db
 *.pkl
 *.pkl.z
 
-# Large Local Datasets
-data/
+# Large Local Datasets — but keep the small drift-monitoring files
+data/*
+!data/reference.csv
+!data/recent_requests.csv
 *.csv
+!data/reference.csv
+!data/recent_requests.csv
