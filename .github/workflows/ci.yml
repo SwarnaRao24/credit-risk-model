@@ -111,24 +111,16 @@ jobs:
           lfs: true
           fetch-depth: 0
 
-      - name: Install Git Xet
-        # HF Spaces migrated binary storage to Xet and now rejects
-        # plain git-LFS pushes of binary files ("Your push was
-        # rejected because it contains binary files"). The Xet git
-        # extension is required on the pushing machine.
-        # https://huggingface.co/docs/hub/xet/using-xet-storage
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf \
-            https://raw.githubusercontent.com/huggingface/xet-core/refs/heads/main/git_xet/install.sh | sh
-          git xet install
-          git xet --version
-
-      - name: Push to HF Space
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_USER: SwarnaRao24            # ← change if your HF username differs
-          HF_SPACE: credit-risk-api       # ← the Space name you create
-        run: |
-          git push --force \
-            "https://${HF_USER}:${HF_TOKEN}@huggingface.co/spaces/${HF_USER}/${HF_SPACE}" \
-            HEAD:main
+      - name: Sync to Hugging Face Space
+        # Uses HF's official hub-sync action, which uploads via the `hf`
+        # CLI's API rather than raw git push. This sidesteps the
+        # git-LFS-vs-Xet binary-file rejection entirely — no LFS/Xet
+        # client setup needed on the runner.
+        # https://huggingface.co/docs/hub/repositories-github-actions
+        uses: huggingface/hub-sync@v0.1.0
+        with:
+          github_repo_id: ${{ github.repository }}
+          huggingface_repo_id: SwarnaRao24/credit-risk-api   # ← change if your HF username/Space differs
+          hf_token: ${{ secrets.HF_TOKEN }}
+          repo_type: space
+          space_sdk: docker
