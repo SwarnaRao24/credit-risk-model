@@ -1,7 +1,11 @@
 mlflow.db
 mlruns/
-data/
+data/*
+!data/reference.csv
+!data/recent_requests.csv
 *.csv
+!data/reference.csv
+!data/recent_requests.csv
 __pycache__/
 *.pyc
 .git/
