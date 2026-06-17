@@ -1,4 +1,4 @@
-name: CI — Build & Test
+name: CI/CD — Test, Build, Publish, Deploy
 
 on:
   push:
@@ -7,6 +7,9 @@ on:
     branches: [main]
 
 jobs:
+  # ────────────────────────────────────────────────
+  # 1. Unit tests (model is mocked — no LFS needed)
+  # ────────────────────────────────────────────────
   test:
     runs-on: ubuntu-latest
     steps:
@@ -21,15 +24,18 @@ jobs:
         run: pip install -r requirements.txt pytest
 
       - name: Run tests
-        run: pytest tests/ -v --rootdir=.   # ← tells pytest root is project root
+        run: pytest tests/ -v --rootdir=.
 
+  # ────────────────────────────────────────────────
+  # 2. Build image + smoke test the real container
+  # ────────────────────────────────────────────────
   docker:
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          lfs: true
+          lfs: true   # pull the REAL model file, not the LFS pointer
 
       - name: Verify model is real (not an LFS pointer)
         run: |
@@ -44,10 +50,73 @@ jobs:
       - name: Smoke test container
         run: |
           docker run -d -p 8000:8000 --name api credit-risk-api:latest
-          echo "Waiting 20s for startup..."
-          sleep 20
-          echo "=== CONTAINER LOGS ==="
-          docker logs api
-          echo "=== END LOGS ==="
-          curl -f http://localhost:8000/health
+          echo "Polling /health (max 60s)..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8000/health; then
+              echo ""; echo "API is healthy."; break
+            fi
+            if [ "$i" = "30" ]; then
+              echo "API never became healthy:"; docker logs api; exit 1
+            fi
+            sleep 2
+          done
+          curl -sf -X POST http://localhost:8000/predict \
+            -H "Content-Type: application/json" \
+            -d '{"RevolvingUtilizationOfUnsecuredLines":0.5,"age":40,"NumberOfTime30-59DaysPastDueNotWorse":0,"DebtRatio":0.3,"MonthlyIncome":6000,"NumberOfOpenCreditLinesAndLoans":5,"NumberOfTimes90DaysLate":0,"NumberRealEstateLoansOrLines":1,"NumberOfTime60-89DaysPastDueNotWorse":0,"NumberOfDependents":1}'
           docker stop api
+
+  # ────────────────────────────────────────────────
+  # 3. Publish image to GitHub Container Registry
+  #    (only on push to main, never on PRs)
+  # ────────────────────────────────────────────────
+  publish:
+    needs: docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set lowercase image name   # GHCR requires lowercase
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Build and push
+        run: |
+          docker build -t "$IMAGE:latest" -t "$IMAGE:${GITHUB_SHA::7}" .
+          docker push "$IMAGE:latest"
+          docker push "$IMAGE:${GITHUB_SHA::7}"
+
+  # ────────────────────────────────────────────────
+  # 4. Deploy to Hugging Face Spaces (live demo)
+  #    Requires repo secret: HF_TOKEN (write access)
+  # ────────────────────────────────────────────────
+  deploy:
+    needs: docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Push to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USER: SwarnaRao24
+          HF_SPACE: credit-risk-api
+        run: |
+          git push --force \
+            "https://${HF_USER}:${HF_TOKEN}@huggingface.co/spaces/${HF_USER}/${HF_SPACE}" \
+            HEAD:main
